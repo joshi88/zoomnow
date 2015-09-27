@@ -1,0 +1,12 @@
+name = ZoomNow
+description = will show zoom functionality on images.
+package = Zoom
+core = "7.x"
+configure = admin/config/user-interface/zoomnow
+dependencies[] = jquery_update
+
+version = "7.x-2.1"
+core = "7.x"
+project = "Zoom"
+datestamp = "1405873428"
+

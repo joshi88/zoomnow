@@ -1,0 +1,160 @@
+<?php
+/**
+ * @file
+ * adds a formatter for zoomnow
+ *
+ */
+function zoomnow_init(){
+		drupal_add_css(drupal_get_path('module', 'zoomnow') . '/zoomnow.css');
+		drupal_add_js(drupal_get_path('module', 'zoomnow') . '/jquery.zoom.js');
+		drupal_add_js(drupal_get_path('module', 'zoomnow') . '/zoomnow.js');
+
+}
+
+/**
+ * Implements hook_permission().
+ */
+
+function zoomnow_permission(){
+	return array(
+		'administer zoomnow'=>array(
+			'title'=> t('administer zoomnow'),
+			'description'=>t('perform administration  tasks for zoomnow.'),
+			),
+		);
+}
+
+
+
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+
+ function zoomnow_field_formatter_info() {
+  return array(
+    'zoomnow_formatter' => array( //Machine name of the formatter
+      'label' => t('ZoomNow'),
+      'field types' => array('image'), //This will only be available to text fields
+      'settings' => array(
+        'zoomnow_image_styles' => 'medium',
+        
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+
+function zoomnow_field_formatter_settings_form($field, $instance, $view_mode, $form, &$form_state) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+  $image_style_list =image_style_options(FALSE);
+  $element = array();
+
+  $element['zoomnow_image_styles'] = array(
+        '#title' => t('Select image style for image'),
+        '#type' => 'select',
+        '#empty_option' => t('None (original image)'),
+        '#options'=> $image_style_list,
+      );
+
+  return $element;
+
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function zoomnow_field_formatter_settings_summary($field, $instance, $view_mode) {
+  $display = $instance['display'][$view_mode];
+  $settings = $display['settings'];
+
+  $summary = t('Display style: @style', array('@style' => $settings['zoomnow_image_styles']));
+  return $summary;
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+
+ function zoomnow_field_formatter_view($entity_type, $entity, $field, $instance, $langcode, $items, $display) {
+
+  $settings = $display['settings'];
+  $element = array();
+  if ($display['type'] == 'zoomnow_formatter') {
+    foreach ($items as $delta => $item) {
+       $variables = array(
+          'file' => $item,
+        );
+     
+     $element[$delta]=array(
+     	'#markup'=> theme('zoomnow_images',$variables),
+     	);
+
+    }
+  }
+  return $element;
+}
+
+/**
+* Implements hook_theme().
+*/
+
+function zoomnow_theme(){
+	return array(
+
+		'zoomnow_images' => array(
+			'template' => 'zoomsnow',
+			'variables'=>array(
+				'file' => NULL,
+				),
+			),
+		);
+}
+
+
+
+ /**
+ * Implements hook_menu().
+ */
+
+ function zoomnow_menu() {
+  $items = array();
+
+  // Setup a menu system in admin page for the module.
+
+  $items['admin/config/user-interface/zoomnow'] = array(
+    'title' => 'Zoomnow',
+    'description' => 'Manage the zoomnow settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('zoomfunction_form'),
+    'access arguments' => array('administer zoomnow'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  return $items;
+}
+
+
+// zoomnow form here
+
+function zoomfunction_form($form, &$form_state){
+  $form = array();
+		$form['selected_option']['option_selected'] = array(
+      '#type' => 'radios',
+      '#title' => t('Zoom Plugin options'),
+      '#options' => array('hover' => 'hover', 'click_active' => 'Click on active'),
+      '#default_value' => variable_get('option_selected', 'hover'),
+      '#required' => TRUE,
+    );
+			return system_settings_form($form);
+}
+
+
+$optinsNow = array(
+    'option_selected'=> variable_get('option_selected','hover'),
+    );
+  drupal_add_js(array('zoomnow_selected_option' => $optinsNow), 'setting');
